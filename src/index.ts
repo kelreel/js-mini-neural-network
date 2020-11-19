@@ -58,7 +58,7 @@ class NeuralNetwork {
 
   backPropagation(input_val: number[], right_val: number) {
     const calculateLastNeuronError = (n: Neuron): number =>
-      n._value >= 0 ? -(right_val - n._value) : 0;
+      -n._value * (right_val - n._value) * (1 - n._value);
 
     this.neurons = this.neurons.reverse();
 
@@ -68,18 +68,29 @@ class NeuralNetwork {
         return;
       }
 
-      if (n._value <= 0) {
-        this.neurons[index].error = 0;
-      } else {
-        let ridges = this.findOutRidgesFromNeuron(n.id);
+      let err = 0;
 
-        let err = 0;
-        ridges.forEach((r) => {
-          err += r.weight * this.getNeuronById(r.outNeuron.id).error;
-        });
+      let ridges = this.findOutRidgesFromNeuron(n.id);
+      ridges.forEach((r) => {
+        err += r.weight * this.getNeuronById(r.outNeuron.id).error;
+      });
 
-        this.neurons[index].error = err;
-      }
+      err *= (1 - n._value) * n._value
+
+      this.neurons[index].error = err;
+
+      // if (n._value <= 0) {
+      //   this.neurons[index].error = 0;
+      // } else {
+      //   let ridges = this.findOutRidgesFromNeuron(n.id);
+
+      //   let err = 0;
+      //   ridges.forEach((r) => {
+      //     err += r.weight * this.getNeuronById(r.outNeuron.id).error;
+      //   });
+
+      //   this.neurons[index].error = err;
+      // }
     });
 
     this.neurons = this.neurons.reverse();
@@ -173,18 +184,19 @@ function init() {
   ];
 
   const activateF: ActivateFunction = (val) => {
-    return val > 0 ? val : 0;
+    return 1 / (1 + Math.exp(-val));
   };
 
-  let n = new NeuralNetwork(neurons, ridges, activateF, 0.2);
+  let n = new NeuralNetwork(neurons, ridges, activateF, 0.9);
 
-  for (let i = 0; i < 10; i++) {
-    console.log(n.fit([0.1, 0.9]));
-    n.backPropagation([0.1, 0.9], 1);
+  for (let i = 0; i < 1; i++) {
+    console.log(n.fit([0.5, 0.9]));
+    n.backPropagation([0.5, 0.9], 0.89);
 
+    console.log(n.neurons);
+    console.log(n.ridges);
   }
-  console.log(n.neurons);
-  console.log(n.ridges);
+  console.log(n.fit([0.5, 0.9]));
 }
 
 init();
